@@ -11,23 +11,6 @@ CORS(app)
 driver = GraphDatabase.driver("bolt://localhost:7687", auth=("admin", "admin"))
 
 
-#
-# {
-
-#     address: penezenky ktery ziskali penize od tehle adresy
-#     received - depth: penezenky ktery ziskali pres maximum tehle hloubky
-#     sent - depth: penezenky ktery poslali pres maximum tehle hloubky
-
-#     date - start: milisekundy od epochy
-#     date - end: milisekundy od epochy
-#     balance - more - than: vic nez nebo rovna se tendle balance
-#     balance - less - than: min nez nebo rovna se tendle balance
-
-
-#     sent - more - than: penezenky ktery poslali vic nez nebo rovna se tendle balance
-#     received - more - than: penezenky ktery ziskali vic nez nebo rovna se tendle balance
-# }
-
 
 def build_neo4j_req_from_rest_req(r):
 
@@ -39,17 +22,17 @@ def build_neo4j_req_from_rest_req(r):
     pprint(r)
 
     if 'sent-depth' in r and 'received-depth' in r:
-        req = "MATCH path=(previousNode:ADDRESS)-[r2:Transaction*.." + str(r["sent-depth"]) + \
+        req = "MATCH path=(previousNode:ADDRESS)-[*1.." + str(r["sent-depth"]) + \
             "]->(centralNode:ADDRESS {hash:\"" + r["address"] + "\"})-[*.." + \
-              str(r["received-depth"]) + "]->(endNode:Address) "
+              str(r["received-depth"]) + "]->(endNode:ADDRESS) "
 
     if 'sent-depth' in r:
-        req = "MATCH path=(previousNode:ADDRESS)-[r2:Transaction*.." + str(r["sent-depth"]) + \
+        req = "MATCH path=(previousNode:ADDRESS)-[*1.." + str(r["sent-depth"]) + \
             "]->(centralNode:ADDRESS {hash:\"" + r["address"] + "\"})"
 
     if 'received-depth' in r:
         req = "MATCH path=(centralNode:ADDRESS {hash:\"" + r["address"] + \
-            "\"})-[*.." + str(r["received-depth"]) + "]->(endNode:ADDRESS) "
+            "\"})-[*1.." + str(r["received-depth"]) + "]->(endNode:ADDRESS) "
 
     # if 'date-start' in r:
     #     req += constring + \
@@ -77,7 +60,7 @@ def build_neo4j_req_from_rest_req(r):
     #     req += constring + "r2.amount < " + r['balance-less-than']
     #     constring = " and "
 
-    req += " RETURN path LIMIT 100"
+    req += " RETURN nodes(path),relationships(path) LIMIT 10000"
 
     print(req)
     return req
@@ -89,8 +72,8 @@ def create_task():
     #######################################
     # create neo4j request
     req = ""
-    pprint(request.get_json(silent=True))
-    r = request.get_json(silent=True)
+    pprint(request.get_json())
+    r = request.get_json()
     req = build_neo4j_req_from_rest_req(r)
 
     with driver.session() as session:
@@ -107,20 +90,27 @@ def create_task():
     # print( g.relationships )
 
     print("STAAART")
+    visited_nodes = {}
+    visited_relationships = {}
     for res in result:
+
         for node in res.data()['nodes(path)']:
             nd = {'hash' : node['hash']}
-            nodes.append(nd)
+            if node['hash'] not in visited_nodes.keys():
+                nodes.append(nd)
+                visited_nodes[node['hash']] = 1
         for rel in res.data()['relationships(path)']:
-            hsh = rel['txhash']
+            hsh = rel['hash']
+
             start = rel.start_node['hash']
             end = rel.end_node['hash']
             rl = {'hash': hsh,
                   'start': start,
                   'end': end}
-            rels.append(rl)
+            if start + end not in visited_relationships.keys():
+                visited_relationships[start+end] = 1
+                rels.append(rl)
     print("KONEEEEEC")
 
     ret = { 'nodes': nodes, 'edges': rels}
-    pprint(ret)
     return jsonify(ret), 201
