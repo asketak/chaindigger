@@ -31,6 +31,7 @@
 }
 #QueryPanel .datetimepicker-dummy-input {
     max-width: 80%;
+    margin: auto;
 }
 
 #QueryPanel .form-and-ampersand {
@@ -94,10 +95,18 @@
 
 #node-info .node-value {
     background-color: white;
-    border-bottom: 1px solid rgba(0, 209, 178, 0.43);
-    padding: 0.3rem;
+    border: 1px solid rgba(0, 209, 178, 0.43);
+    border-radius: 12px;
+    padding: 0.6rem;
 }
 
 #node-info .label {
     display: inline;
+    line-height: 2.2;
+}
+
+#node-info span.icon {
+    margin-left: 5px;
+    position: relative;
+    top: 2px;
 }

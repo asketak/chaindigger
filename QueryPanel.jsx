@@ -106,12 +106,12 @@ export default class QueryPanel extends React.Component {
 						<Label className="form-option-label">Addresses which owns</Label>
 						<FieldBody>
 							<Control hasIcons='left'>
-								<Icon isSize='small' isAlign='left' className="fa fa-greater-than-equal"></Icon>
+								<Icon isSize='small' isAlign='left' className="fa fa-greater-than-equal"/>
 								<Input id="balance-minimum" type="text" isColor='primary' placeholder="Minimum of"/>
 							</Control>
 							<Label className="form-and-ampersand">and</Label>
 							<Control hasIcons='left'>
-								<Icon isSize='small' isAlign='left' className="fa fa-less-than-equal"></Icon>
+								<Icon isSize='small' isAlign='left' className="fa fa-less-than-equal"/>
 								<Input id="balance-maximum" type="text" isColor='primary' placeholder="Maximum of"/>
 							</Control>
 						</FieldBody>
@@ -120,19 +120,19 @@ export default class QueryPanel extends React.Component {
 					<Field>
 						<Label className="form-option-label">Address vicinity</Label>
 						<Control hasIcons='left' isExpanded>
-							<Icon isSize='small' isAlign='left' className="fa fa-address-card"></Icon>
+							<Icon isSize='small' isAlign='left' className="fa fa-address-card"/>
 							<Input id="address" type="text" isColor='primary' placeholder="Address"/>
 						</Control>
 
 						<Label className="form-vicinity-label">filter addresses which sent a minimum of</Label>
 						<FieldBody>
 							<Control hasIcons='left'>
-								<Icon isSize='small' isAlign='left' className="fa fa-greater-than-equal"></Icon>
+								<Icon isSize='small' isAlign='left' className="fa fa-greater-than-equal"/>
 								<Input id="sent-minimum" type="text" isColor='primary' placeholder="Minimum of"/>
 							</Control>
 							<Label className="form-text form-text-depth">through max of</Label>
 							<Control hasIcons='left' className="form-max-depth">
-								<Icon isSize='small' isAlign='left' className="fa fa-ruler-horizontal"></Icon>
+								<Icon isSize='small' isAlign='left' className="fa fa-ruler-horizontal"/>
 								<Input id="sent-depth" type="text" isColor='primary' placeholder="Depth"/>
 							</Control>
 							<Label className="form-text">addresses</Label>
@@ -141,12 +141,12 @@ export default class QueryPanel extends React.Component {
 						<Label className="form-vicinity-label">filter addresses which received a minimum of</Label>
 						<FieldBody>
 							<Control hasIcons='left'>
-								<Icon isSize='small' isAlign='left' className="fa fa-greater-than-equal"></Icon>
+								<Icon isSize='small' isAlign='left' className="fa fa-greater-than-equal"/>
 								<Input id="received-minimum" type="text" isColor='primary' placeholder="Minimum of"/>
 							</Control>
 							<Label className="form-text form-text-depth">through max of</Label>
 							<Control hasIcons='left' className="form-max-depth">
-								<Icon isSize='small' isAlign='left' className="fa fa-ruler-horizontal"></Icon>
+								<Icon isSize='small' isAlign='left' className="fa fa-ruler-horizontal"/>
 								<Input id="received-depth" type="text" isColor='primary' placeholder="Depth"/>
 							</Control>
 							<Label className="form-text">addresses</Label>
