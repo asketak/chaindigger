@@ -52753,6 +52753,7 @@ function (_React$Component) {
       });
     };
 
+    _this.walletBalanceRef = Graph_React.createRef();
     return _this;
   }
 
@@ -52767,6 +52768,22 @@ function (_React$Component) {
       return "https://explorer.testnet2.matic.network/tx/" + hash + "/token_transfers";
     }
   }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate() {
+      if (this.state.nodeInfo && !this.state.nodeInfo.start) {
+        var currentNode = this.walletBalanceRef.current;
+        fetch("https://explorer.testnet2.matic.network/api?module=account&action=balance&address=" + this.state.nodeInfo.id, {
+          headers: {
+            'accept': 'application/json'
+          }
+        }).then(function (response) {
+          return response.json();
+        }).then(function (json) {
+          currentNode.innerHTML = json.result;
+        });
+      }
+    }
+  }, {
     key: "renderAddressInfoNode",
     value: function renderAddressInfoNode() {
       return Graph_React.createElement("div", {
@@ -52774,10 +52791,16 @@ function (_React$Component) {
       }, Graph_React.createElement(bloomer_min["Field"], null, Graph_React.createElement(bloomer_min["Label"], null, "Address: "), Graph_React.createElement("span", {
         className: "node-value"
       }, Graph_React.createElement("a", {
+        target: "_blank",
         href: this.getExplorerAddressLink(this.state.nodeInfo.id)
-      }, this.state.nodeInfo.id))), Graph_React.createElement(bloomer_min["Field"], null, Graph_React.createElement(bloomer_min["Label"], null, "Balance: "), Graph_React.createElement("span", {
-        className: "node-value"
-      }, this.state.nodeInfo.group)));
+      }, this.state.nodeInfo.id, Graph_React.createElement(bloomer_min["Icon"], {
+        isSize: "small",
+        isAlign: "right",
+        className: "fa fa-external-link-alt"
+      })))), Graph_React.createElement(bloomer_min["Field"], null, Graph_React.createElement(bloomer_min["Label"], null, "Balance: "), Graph_React.createElement("span", {
+        className: "node-value",
+        ref: this.walletBalanceRef
+      })));
     }
   }, {
     key: "renderTransactionInfoNode",
@@ -52787,8 +52810,13 @@ function (_React$Component) {
       }, Graph_React.createElement(bloomer_min["Field"], null, Graph_React.createElement(bloomer_min["Label"], null, "Transaction: "), Graph_React.createElement("span", {
         className: "node-value"
       }, Graph_React.createElement("a", {
+        target: "_blank",
         href: this.getExplorerTransactionLink(this.state.nodeInfo.id)
-      }, this.state.nodeInfo.id))), Graph_React.createElement(bloomer_min["Field"], null, Graph_React.createElement(bloomer_min["Label"], null, "Amount: "), Graph_React.createElement("span", {
+      }, this.state.nodeInfo.id, Graph_React.createElement(bloomer_min["Icon"], {
+        isSize: "small",
+        isAlign: "right",
+        className: "fa fa-external-link-alt"
+      })))), Graph_React.createElement(bloomer_min["Field"], null, Graph_React.createElement(bloomer_min["Label"], null, "Amount: "), Graph_React.createElement("span", {
         className: "node-value"
       }, this.state.nodeInfo.group)));
     }
@@ -52797,10 +52825,10 @@ function (_React$Component) {
     value: function renderInfoNode() {
       if (!this.state.nodeInfo) {
         return null;
-      } else if (this.state.nodeInfo.address) {
-        return this.renderAddressInfoNode();
-      } else {
+      } else if (this.state.nodeInfo.start) {
         return this.renderTransactionInfoNode();
+      } else {
+        return this.renderAddressInfoNode();
       }
     }
   }, {
