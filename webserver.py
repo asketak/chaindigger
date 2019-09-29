@@ -34,18 +34,22 @@ def build_neo4j_req_from_rest_req(r):
     ret = ""
     constring = " where "
 
+    req = ""
+
+    pprint(r)
+
     if 'sent-depth' in r and 'received-depth' in r:
-        req = "MATCH path=(previousNode:Address)-[r2:Transaction*.." + r["sent-depth"] + \
-            "]->(centralNode:Address {hash:\"" + r["address"] + "\"})-[*.." + \
-            r["received-depth"] + "]->(endNode:Address) "
+        req = "MATCH path=(previousNode:ADDRESS)-[r2:Transaction*.." + str(r["sent-depth"]) + \
+            "]->(centralNode:ADDRESS {hash:\"" + r["address"] + "\"})-[*.." + \
+              str(r["received-depth"]) + "]->(endNode:Address) "
 
     if 'sent-depth' in r:
-        req = "MATCH path=(previousNode:Address)-[r2:Transaction*.." + r["sent-depth"] + \
-            "]->(centralNode:Address {hash:\"" + r["address"] + "\"})"
+        req = "MATCH path=(previousNode:ADDRESS)-[r2:Transaction*.." + str(r["sent-depth"]) + \
+            "]->(centralNode:ADDRESS {hash:\"" + r["address"] + "\"})"
 
     if 'received-depth' in r:
-        req = "MATCH path=(centralNode:Address {hash:\"" + r["address"] + \
-            "\"})-[*.." + r["received-depth"] + "]->(endNode:Address) "
+        req = "MATCH path=(centralNode:ADDRESS {hash:\"" + r["address"] + \
+            "\"})-[*.." + str(r["received-depth"]) + "]->(endNode:ADDRESS) "
 
     # if 'date-start' in r:
     #     req += constring + \
@@ -74,6 +78,8 @@ def build_neo4j_req_from_rest_req(r):
     #     constring = " and "
 
     req += " RETURN path LIMIT 100"
+
+    print(req)
     return req
 
 
@@ -83,12 +89,9 @@ def create_task():
     #######################################
     # create neo4j request
     req = ""
-    if not request.get_json(silent=True) or not 'request' in request.get_json(silent=True):
-        req = "MATCH path=(startNode:Address {hash:\"0x1a06816065731fcbd7296f9b2400d632816b070b\"})-[*2..3]->(endNode:Address) RETURN nodes(path),relationships(path) LIMIT 10"
-        # abort(400)
-    else:
-        r = request.json['request'],
-        req = build_neo4j_req_from_rest_req(r)
+    pprint(request.get_json(silent=True))
+    r = request.get_json(silent=True)
+    req = build_neo4j_req_from_rest_req(r)
 
     with driver.session() as session:
         result = session.run(req)
@@ -109,15 +112,13 @@ def create_task():
             nd = {'hash' : node['hash']}
             nodes.append(nd)
         for rel in res.data()['relationships(path)']:
-            hsh = rel['hash']
+            hsh = rel['txhash']
             start = rel.start_node['hash']
             end = rel.end_node['hash']
             rl = {'hash': hsh,
                   'start': start,
                   'end': end}
             rels.append(rl)
-    pprint(nodes)
-    pprint(rels)
     print("KONEEEEEC")
 
     ret = { 'nodes': nodes, 'edges': rels}

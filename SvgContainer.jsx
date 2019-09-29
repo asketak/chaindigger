@@ -20,7 +20,7 @@ export default class Graph extends React.Component {
 	}
 }
 
-let selectedNode = null
+let selectedElement = null
 
 
 function renderGraph(props, graphNode) {
@@ -63,11 +63,21 @@ function renderGraph(props, graphNode) {
 
 
 
-	const links = data.links.map(d => Object.create(d));
-	const nodes = data.nodes.map(d => Object.create(d));
+	const edges = data.edges.map(edge => {
+		return {
+			id: "lina",//edge.hash,
+			source: edge.start,
+			target: edge.end
+		}
+	});
+	const nodes = data.nodes.map(node => {
+		return {
+			id: node.hash
+		}
+	});
 
 	const simulation = d3.forceSimulation(nodes)
-			.force("link", d3.forceLink(links).id(d => d.id))
+			.force("link", d3.forceLink(edges).id(d => d.id))
 			.force("charge", d3.forceManyBody())
 			.force("center", d3.forceCenter(width / 2, height / 2));
 
@@ -77,9 +87,13 @@ function renderGraph(props, graphNode) {
 	const link = svg.append("g")
 			.attr("stroke", "#999")
 			.attr("stroke-opacity", 0.6)
+			.attr("stroke-width", "3px")
 			.selectAll("line")
-			.data(links)
+			.data(edges)
 			.join("line")
+			.on("mouseover", mouseover)
+			.on("mouseout", mouseout)
+			.on("click", mouseclick)
 			.attr("stroke-width", d => Math.sqrt(d.value));
 
 	const node = svg.append("g")
@@ -118,38 +132,46 @@ function renderGraph(props, graphNode) {
 	}
 
 	function mouseout() {
-		if (this === selectedNode) {
+		if (this === selectedElement) {
 			return
 		}
 
 		unhighlight(this)
 
-		if (selectedNode !== null) {
-			props.onNodeInfoChange(selectedNode.__data__)
+		if (selectedElement !== null) {
+			props.onNodeInfoChange(selectedElement.__data__)
 		} else {
 			props.onNodeInfoChange(undefined)
 		}
 	}
 
 	function mouseclick() {
-		if (selectedNode) {
-			unhighlight(selectedNode)
+		if (selectedElement) {
+			unhighlight(selectedElement)
 		}
 
-		if (this === selectedNode) {
-			selectedNode = null
+		if (this === selectedElement) {
+			selectedElement = null
 			props.onNodeInfoChange(undefined)
 		} else {
-			selectedNode = this
+			selectedElement = this
 		}
 	}
 
 	function highlight(node) {
-		d3.select(node).transition().duration(500).attr("r", 16);
+		if (node.tagName === "circle") {
+			d3.select(node).transition().duration(350).attr("r", 16);
+		} else {
+			d3.select(node).transition().duration(350).attr("stroke-width", "10px");
+		}
 	}
 
 	function unhighlight(node) {
-		d3.select(node).transition().duration(500).attr("r", 8);
+		if (node.tagName === "circle") {
+			d3.select(node).transition().duration(350).attr("r", 8);
+		} else {
+			d3.select(node).transition().duration(350).attr("stroke-width", "3px");
+		}
 	}
 
 	//invalidation.then(() => simulation.stop());
