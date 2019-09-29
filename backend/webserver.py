@@ -82,7 +82,7 @@ def create_task():
     # create neo4j request
     req = ""
     if not request.get_json(silent=True) or not 'request' in request.get_json(silent=True):
-        req = "MATCH path=(startNode:Address {hash:\"0x1a06816065731fcbd7296f9b2400d632816b070b\"})-[*2..3]->(endNode:Address) RETURN nodes(path),relationships(path) LIMIT 1"
+        req = "MATCH path=(startNode:Address {hash:\"0x1a06816065731fcbd7296f9b2400d632816b070b\"})-[*2..3]->(endNode:Address) RETURN nodes(path),relationships(path) LIMIT 10"
         # abort(400)
     else:
         r = request.json['request'],
@@ -120,5 +120,4 @@ def create_task():
 
     ret = { 'nodes': nodes, 'edges': rels}
     pprint(ret)
-    return jsonify(tuple(ret)), 201
-    # return jsonify({'task': result}), 201
+    return jsonify(ret), 201
