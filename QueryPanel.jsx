@@ -77,7 +77,7 @@ export default class QueryPanel extends React.Component {
 			return response.json()
 		}).then(json => {
 			console.log(json)
-			this.props.setData(json)
+			this.props.setData({data: json, address: queryObj.address})
 		})
 	}
 
@@ -154,7 +154,7 @@ export default class QueryPanel extends React.Component {
 					</Field>
 
 
-					<Button isColor='primary' isSize='large' onClick={this.onSubmit}>Submit</Button>
+					<Button id="submit-button" isColor='primary' isSize='large' onClick={this.onSubmit}>Submit</Button>
 				</div>
 		)
 	}

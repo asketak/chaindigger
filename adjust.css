@@ -35,7 +35,7 @@
 }
 
 #QueryPanel .form-and-ampersand {
-    margin: 5px 10px 0 10px !important;
+    margin: 5px 13px 0 13px !important;
     font-size: 1rem;
 }
 
@@ -56,6 +56,10 @@
 
 #QueryPanel .control.is-expanded {
     width: 100%;
+}
+
+#QueryPanel #submit-button {
+    margin-top: 15px;
 }
 
 
@@ -98,11 +102,13 @@
     border: 1px solid rgba(0, 209, 178, 0.43);
     border-radius: 12px;
     padding: 0.6rem;
+    font-weight: bold;
 }
 
 #node-info .label {
     display: inline;
     line-height: 2.2;
+    margin-right: 10px;
 }
 
 #node-info span.icon {

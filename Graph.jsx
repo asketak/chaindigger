@@ -9,6 +9,14 @@ export default class Graph extends React.Component {
 		super(props)
 	}
 
+	componentDidCatch(error, info) {
+		console.error(error);
+	}
+
+	static getDerivedStateFromError() {
+		return {}
+	}
+
 	state = {
 		nodeInfo: undefined
 	}
@@ -37,7 +45,9 @@ export default class Graph extends React.Component {
 			}).then(response => {
 				return response.json()
 			}).then(json => {
-				currentNode.innerHTML = json.result
+				if (currentNode) {
+					currentNode.innerText = json.result + " MATIC"
+				}
 			})
 		}
 	}
@@ -61,7 +71,8 @@ export default class Graph extends React.Component {
 						<Label>Transaction: </Label>
 						<span className="node-value"><a target="_blank" href={this.getExplorerTransactionLink(this.state.nodeInfo.id)}>{this.state.nodeInfo.id}<Icon isSize='small' isAlign='right' className="fa fa-external-link-alt"/></a></span>
 					</Field>
-					<Field><Label>Amount: </Label><span className="node-value">{this.state.nodeInfo.group}</span></Field>
+					<Field style={{float: "left"}}><Label>Amount: </Label><span className="node-value">{this.state.nodeInfo.amount} {this.state.nodeInfo.asset.toUpperCase()}</span></Field>
+					<Field style={{float: "left", marginLeft: "20px"}}><Label>Time: </Label><span className="node-value">{new Date(this.state.nodeInfo.timestamp).toLocaleString()}</span></Field>
 				</div>
 		)
 	}
@@ -69,7 +80,7 @@ export default class Graph extends React.Component {
 	renderInfoNode() {
 		if (!this.state.nodeInfo) {
 			return null
-		} else if (this.state.nodeInfo.start) {
+		} else if (this.state.nodeInfo.timestamp) {
 			return this.renderTransactionInfoNode()
 		} else {
 			return this.renderAddressInfoNode()
@@ -80,7 +91,7 @@ export default class Graph extends React.Component {
 		return (
 			<div id="Graph">
 				{this.renderInfoNode()}
-				<SvgContainer key={this.props.queryDate} data={this.props.data} onNodeInfoChange={this.onNodeInfoChange}/>
+				<SvgContainer key={this.props.queryDate} data={this.props.data} address={this.props.address} onNodeInfoChange={this.onNodeInfoChange}/>
 			</div>
 		)
 	}

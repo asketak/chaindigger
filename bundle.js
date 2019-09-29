@@ -52364,7 +52364,10 @@ function (_React$Component) {
       }).then(function (json) {
         console.log(json);
 
-        _this.props.setData(json);
+        _this.props.setData({
+          data: json,
+          address: queryObj.address
+        });
       });
     };
 
@@ -52514,6 +52517,7 @@ function (_React$Component) {
       })), React.createElement(bloomer_min["Label"], {
         className: "form-text"
       }, "addresses"))), React.createElement(bloomer_min["Button"], {
+        id: "submit-button",
         isColor: "primary",
         isSize: "large",
         onClick: this.onSubmit
@@ -52613,15 +52617,32 @@ function renderGraph(props, graphNode) {
   var scale = d3.scaleOrdinal(d3.schemeCategory10);
 
   var color = function color(d) {
-    return scale(d.group);
+    if (d.id === props.address) {
+      return "red"; //"#00d1b2"
+    } else {
+      return scale(d.group);
+    }
   };
 
-  var edges = data.edges.map(function (edge) {
+  var filteredEdges = data.edges.filter(function (edge) {
+    return edge.start !== edge.end;
+  });
+  var coinMap = {};
+  var curEdgeGroup = 2;
+  filteredEdges.forEach(function (edge) {
+    if (!coinMap[edge.asset]) {
+      coinMap[edge.asset] = curEdgeGroup++;
+    }
+  });
+  var edges = filteredEdges.map(function (edge) {
     return {
-      id: "lina",
-      //edge.hash,
+      id: edge.hash,
       source: edge.start,
-      target: edge.end
+      target: edge.end,
+      amount: edge.amount,
+      asset: edge.asset,
+      timestamp: +edge.timestamp,
+      group: coinMap[edge.asset]
     };
   });
   var nodes = data.nodes.map(function (node) {
@@ -52631,11 +52652,17 @@ function renderGraph(props, graphNode) {
   });
   var simulation = d3.forceSimulation(nodes).force("link", d3.forceLink(edges).id(function (d) {
     return d.id;
-  })).force("charge", d3.forceManyBody()).force("center", d3.forceCenter(width / 2, height / 2));
+  })).force("charge", d3.forceManyBody()).force('collide', d3.forceCollide(function (d) {
+    return d.id === props.address ? 50 : 20;
+  })).force("center", d3.forceCenter(width / 2, height / 2));
   var svg = d3.create("svg").attr("viewBox", [0, 0, width, height]);
-  var link = svg.append("g").attr("stroke", "#999").attr("stroke-opacity", 0.6).attr("stroke-width", "3px").selectAll("line").data(edges).join("line").on("mouseover", mouseover).on("mouseout", mouseout).on("click", mouseclick).attr("stroke-width", function (d) {
+  svg.append('defs').append('marker').attr("id", "arrowhead").attr("viewBox", "0 -5 10 10").attr("refX", 20).attr("markerWidth", 3).attr("markerHeight", 3).attr("orient", "auto").append("svg:path").attr("d", "M0,-5L10,0L0,5").style('stroke', 'none');
+  var link = svg.append("g") //.attr("stroke", "#999")
+  .attr("stroke-opacity", 1).attr("stroke-width", "4px").selectAll("line").data(edges).join("line").attr("stroke", function (l) {
+    return scale(l.group);
+  }).on("mouseover", mouseover).on("mouseout", mouseout).on("click", mouseclick).attr("stroke-width", function (d) {
     return Math.sqrt(d.value);
-  });
+  }).attr('marker-end', 'url(#arrowhead)');
   var node = svg.append("g").attr("stroke", "#fff").attr("stroke-width", 1.5).selectAll("circle").data(nodes).join("circle").attr("r", 8).attr("fill", color).on("mouseover", mouseover).on("mouseout", mouseout).on("click", mouseclick).call(drag(simulation));
   node.append("title").text(function (d) {
     return d.id;
@@ -52690,19 +52717,11 @@ function renderGraph(props, graphNode) {
   }
 
   function highlight(node) {
-    if (node.tagName === "circle") {
-      d3.select(node).transition().duration(350).attr("r", 16);
-    } else {
-      d3.select(node).transition().duration(350).attr("stroke-width", "10px");
-    }
+    d3.select(node).transition().duration(350).attr("r", 16);
   }
 
   function unhighlight(node) {
-    if (node.tagName === "circle") {
-      d3.select(node).transition().duration(350).attr("r", 8);
-    } else {
-      d3.select(node).transition().duration(350).attr("stroke-width", "3px");
-    }
+    d3.select(node).transition().duration(350).attr("r", 8);
   } //invalidation.then(() => simulation.stop());
 
 
@@ -52758,6 +52777,11 @@ function (_React$Component) {
   }
 
   Graph_createClass(Graph, [{
+    key: "componentDidCatch",
+    value: function componentDidCatch(error, info) {
+      console.error(error);
+    }
+  }, {
     key: "getExplorerAddressLink",
     value: function getExplorerAddressLink(hash) {
       return "https://explorer.testnet2.matic.network/address/" + hash + "/transactions";
@@ -52779,7 +52803,9 @@ function (_React$Component) {
         }).then(function (response) {
           return response.json();
         }).then(function (json) {
-          currentNode.innerHTML = json.result;
+          if (currentNode) {
+            currentNode.innerText = json.result + " MATIC";
+          }
         });
       }
     }
@@ -52816,16 +52842,27 @@ function (_React$Component) {
         isSize: "small",
         isAlign: "right",
         className: "fa fa-external-link-alt"
-      })))), Graph_React.createElement(bloomer_min["Field"], null, Graph_React.createElement(bloomer_min["Label"], null, "Amount: "), Graph_React.createElement("span", {
+      })))), Graph_React.createElement(bloomer_min["Field"], {
+        style: {
+          "float": "left"
+        }
+      }, Graph_React.createElement(bloomer_min["Label"], null, "Amount: "), Graph_React.createElement("span", {
         className: "node-value"
-      }, this.state.nodeInfo.group)));
+      }, this.state.nodeInfo.amount, " ", this.state.nodeInfo.asset.toUpperCase())), Graph_React.createElement(bloomer_min["Field"], {
+        style: {
+          "float": "left",
+          marginLeft: "20px"
+        }
+      }, Graph_React.createElement(bloomer_min["Label"], null, "Time: "), Graph_React.createElement("span", {
+        className: "node-value"
+      }, new Date(this.state.nodeInfo.timestamp).toLocaleString())));
     }
   }, {
     key: "renderInfoNode",
     value: function renderInfoNode() {
       if (!this.state.nodeInfo) {
         return null;
-      } else if (this.state.nodeInfo.start) {
+      } else if (this.state.nodeInfo.timestamp) {
         return this.renderTransactionInfoNode();
       } else {
         return this.renderAddressInfoNode();
@@ -52839,8 +52876,14 @@ function (_React$Component) {
       }, this.renderInfoNode(), Graph_React.createElement(SvgContainer_Graph, {
         key: this.props.queryDate,
         data: this.props.data,
+        address: this.props.address,
         onNodeInfoChange: this.onNodeInfoChange
       }));
+    }
+  }], [{
+    key: "getDerivedStateFromError",
+    value: function getDerivedStateFromError() {
+      return {};
     }
   }]);
 
@@ -52888,7 +52931,8 @@ function (_React$Component) {
     _this = ChainDigger_possibleConstructorReturn(this, ChainDigger_getPrototypeOf(ChainDigger).call(this, props));
     _this.state = {
       queryDate: 0,
-      data: null
+      data: null,
+      address: null
     };
     return _this;
   }
@@ -52907,9 +52951,10 @@ function (_React$Component) {
       }, ChainDigger_React.createElement("div", {
         id: "query-panel-column"
       }, ChainDigger_React.createElement(QueryPanel_QueryPanel, {
-        setData: function setData(data) {
+        setData: function setData(result) {
           return _this2.setState({
-            data: data,
+            data: result.data,
+            address: result.address,
             queryDate: new Date().valueOf()
           });
         }
@@ -52917,6 +52962,7 @@ function (_React$Component) {
         id: "result-column"
       }, ChainDigger_React.createElement(Graph_Graph, {
         data: this.state.data,
+        address: this.state.address,
         queryDate: this.state.queryDate
       })));
     }

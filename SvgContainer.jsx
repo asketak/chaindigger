@@ -59,17 +59,43 @@ function renderGraph(props, graphNode) {
 
 
 	const scale = d3.scaleOrdinal(d3.schemeCategory10);
-	const color = d => scale(d.group);
-
-
-
-	const edges = data.edges.map(edge => {
-		return {
-			id: "lina",//edge.hash,
-			source: edge.start,
-			target: edge.end
+	const color = d => {
+		if (d.id === props.address) {
+			return "red"//"#00d1b2"
+		} else {
+			return scale(d.group)
 		}
-	});
+	};
+
+
+
+	const filteredEdges = data.edges
+			.filter(edge => {
+				return edge.start !== edge.end
+			});
+
+	const coinMap = {};
+	let curEdgeGroup = 2;
+
+	filteredEdges.forEach(edge => {
+		if (!coinMap[edge.asset]) {
+			coinMap[edge.asset] = curEdgeGroup++;
+		}
+	})
+
+	const edges = filteredEdges
+			.map(edge => {
+				return {
+					id: edge.hash,
+					source: edge.start,
+					target: edge.end,
+					amount: edge.amount,
+					asset: edge.asset,
+					timestamp: +edge.timestamp,
+					group: coinMap[edge.asset]
+				}
+			});
+
 	const nodes = data.nodes.map(node => {
 		return {
 			id: node.hash
@@ -79,22 +105,38 @@ function renderGraph(props, graphNode) {
 	const simulation = d3.forceSimulation(nodes)
 			.force("link", d3.forceLink(edges).id(d => d.id))
 			.force("charge", d3.forceManyBody())
+			.force('collide', d3.forceCollide(function (d) {
+				return d.id === props.address ? 50 : 20
+			}))
 			.force("center", d3.forceCenter(width / 2, height / 2));
 
 	const svg = d3.create("svg")
 			.attr("viewBox", [0, 0, width, height]);
 
+	svg.append('defs').append('marker')
+			.attr("id", "arrowhead")
+			.attr("viewBox", "0 -5 10 10")
+			.attr("refX", 20)
+			.attr("markerWidth", 3)
+			.attr("markerHeight", 3)
+			.attr("orient", "auto")
+			.append("svg:path")
+			.attr("d", "M0,-5L10,0L0,5")
+			.style('stroke','none');
+
 	const link = svg.append("g")
-			.attr("stroke", "#999")
-			.attr("stroke-opacity", 0.6)
-			.attr("stroke-width", "3px")
+			//.attr("stroke", "#999")
+			.attr("stroke-opacity", 1)
+			.attr("stroke-width", "4px")
 			.selectAll("line")
 			.data(edges)
 			.join("line")
+			.attr("stroke", (l => scale(l.group)))
 			.on("mouseover", mouseover)
 			.on("mouseout", mouseout)
 			.on("click", mouseclick)
-			.attr("stroke-width", d => Math.sqrt(d.value));
+			.attr("stroke-width", d => Math.sqrt(d.value))
+			.attr('marker-end','url(#arrowhead)');
 
 	const node = svg.append("g")
 			.attr("stroke", "#fff")
@@ -159,19 +201,11 @@ function renderGraph(props, graphNode) {
 	}
 
 	function highlight(node) {
-		if (node.tagName === "circle") {
-			d3.select(node).transition().duration(350).attr("r", 16);
-		} else {
-			d3.select(node).transition().duration(350).attr("stroke-width", "10px");
-		}
+		d3.select(node).transition().duration(350).attr("r", 16);
 	}
 
 	function unhighlight(node) {
-		if (node.tagName === "circle") {
-			d3.select(node).transition().duration(350).attr("r", 8);
-		} else {
-			d3.select(node).transition().duration(350).attr("stroke-width", "3px");
-		}
+		d3.select(node).transition().duration(350).attr("r", 8);
 	}
 
 	//invalidation.then(() => simulation.stop());
