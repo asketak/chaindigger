@@ -54,16 +54,16 @@ def build_neo4j_req_from_rest_req(r):
     #     req += constring + "endNode.balance <= " + r['balance-less-than']
     #     constring = " and "
 
-    if 'sent-minimum' in r:
-        req +="WHERE all(n IN relationships(path) WHERE n.amount >=" + str(r['sent-minimum']) + ")" 
-        # req += constring + "r.amount > " + str(r['sent-minimum'])
-        constring = " and "
+ #   if 'sent-minimum' in r:
+ #       req +="WHERE all(n IN relationships(path) WHERE n.amount >=" + str(r['sent-minimum']) + ")" 
+ #       # req += constring + "r.amount > " + str(r['sent-minimum'])
+ #       constring = " and "
 
     # if 'received-minimum' in r:
     #     req += constring + "rr.amount < " + str(r['received-minimum'])
     #     constring = " and "
 
-    req += " RETURN nodes(path),relationships(path) LIMIT 100"
+    req += " RETURN nodes(path),relationships(path) LIMIT 10000"
 
     print(req)
     return req
@@ -103,7 +103,7 @@ def create_task():
                 nodes.append(nd)
                 visited_nodes[node['hash']] = 1
         for rel in res.data()['relationships(path)']:
-            hsh = rel['hash']
+            hsh = rel['txhash']
             amount = rel['amount']
             asset = rel['asset']
             timestamp = rel['timestamp']
