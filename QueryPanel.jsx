@@ -48,18 +48,18 @@ export default class QueryPanel extends React.Component {
 					requestValue = parseFloat(value)
 				} else if (type === "int") {
 					requestValue = parseInt(value)
-				} else {
+				} else if (type === "text") {
 					requestValue = value
 				}
 
-				if (requestValue !== undefined && !isNaN(requestValue)) {
+				if (requestValue !== undefined && (type === "text" || !isNaN(requestValue))) {
 					queryObj[fieldId] = requestValue
 				}
 			}
 		}
 		addFieldToQuery("balance-minimum", "float")
 		addFieldToQuery("balance-maximum", "float")
-		addFieldToQuery("address")
+		addFieldToQuery("address", "text")
 		addFieldToQuery("sent-minimum", "float")
 		addFieldToQuery("sent-depth", "int")
 		addFieldToQuery("received-minimum", "float")
