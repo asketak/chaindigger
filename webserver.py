@@ -8,7 +8,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-driver = GraphDatabase.driver("bolt://localhost:7687", auth=("admin", "admin"))
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "admin"))
 
 
 
@@ -21,18 +21,20 @@ def build_neo4j_req_from_rest_req(r):
 
     pprint(r)
 
-    if 'sent-depth' in r and 'received-depth' in r:
-        req = "MATCH path=(previousNode:ADDRESS)-[*1.." + str(r["sent-depth"]) + \
-            "]->(centralNode:ADDRESS {hash:\"" + r["address"] + "\"})-[*.." + \
-              str(r["received-depth"]) + "]->(endNode:ADDRESS) "
-
     if 'sent-depth' in r:
-        req = "MATCH path=(previousNode:ADDRESS)-[*1.." + str(r["sent-depth"]) + \
+        req = "MATCH path=(previousNode:ADDRESS)-[r*1.." + str(r["sent-depth"]) + \
             "]->(centralNode:ADDRESS {hash:\"" + r["address"] + "\"})"
 
     if 'received-depth' in r:
         req = "MATCH path=(centralNode:ADDRESS {hash:\"" + r["address"] + \
-            "\"})-[*1.." + str(r["received-depth"]) + "]->(endNode:ADDRESS) "
+            "\"})-[rr*1.." + str(r["received-depth"]) + "]->(endNode:ADDRESS) "
+
+    if 'sent-depth' in r and 'received-depth' in r:
+        req = "MATCH path=(previousNode:ADDRESS)-[r*1.." + str(r["sent-depth"]) + \
+            "]->(centralNode:ADDRESS {hash:\"" + r["address"] + "\"})-[rr*.." + \
+              str(r["received-depth"]) + "]->(endNode:ADDRESS) "
+
+
 
     # if 'date-start' in r:
     #     req += constring + \
@@ -52,15 +54,16 @@ def build_neo4j_req_from_rest_req(r):
     #     req += constring + "endNode.balance <= " + r['balance-less-than']
     #     constring = " and "
 
-    # if 'received-more-than' in r:
-    #     req += constring + "r2.amount > " + r['balance-less-than']
+    if 'sent-minimum' in r:
+        req +="WHERE all(n IN relationships(path) WHERE n.amount >=" + str(r['sent-minimum']) + ")" 
+        # req += constring + "r.amount > " + str(r['sent-minimum'])
+        constring = " and "
+
+    # if 'received-minimum' in r:
+    #     req += constring + "rr.amount < " + str(r['received-minimum'])
     #     constring = " and "
 
-    # if 'received-less-than' in r:
-    #     req += constring + "r2.amount < " + r['balance-less-than']
-    #     constring = " and "
-
-    req += " RETURN nodes(path),relationships(path) LIMIT 10000"
+    req += " RETURN nodes(path),relationships(path) LIMIT 100"
 
     print(req)
     return req
@@ -101,10 +104,16 @@ def create_task():
                 visited_nodes[node['hash']] = 1
         for rel in res.data()['relationships(path)']:
             hsh = rel['hash']
+            amount = rel['amount']
+            asset = rel['asset']
+            timestamp = rel['timestamp']
 
             start = rel.start_node['hash']
             end = rel.end_node['hash']
             rl = {'hash': hsh,
+                  'amount': amount,
+                  'asset': asset,
+                  'timestamp': timestamp,
                   'start': start,
                   'end': end}
             if start + end not in visited_relationships.keys():
