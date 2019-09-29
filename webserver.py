@@ -5,6 +5,7 @@ from pprint import pprint
 from flask import request
 
 app = Flask(__name__)
+CORS(app)
 
 driver = GraphDatabase.driver("bolt://localhost:7687", auth=("admin", "admin"))
 
