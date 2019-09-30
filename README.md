@@ -15,6 +15,6 @@ This repo contains files with data from [MATIC network](https://matic.network/),
   + `node server.js`
   
   The explorer is available at http://localhost:8080/index.html
-  ![](https://i.imgur.com/dvAPKJz.png)
+  ![](https://https://i.imgur.com/5zA0rGS.png)
 
 #  
