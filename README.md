@@ -14,4 +14,4 @@ Hi! **ChainDigger** is a block explorer, which actually visualize transactions h
   + `node server.js`
   
   The explorer is available at http://localhost:8080/index.html
-  ![enter image description here](sdgfsdgfsdgf.com)
+  ![](https://i.imgur.com/dvAPKJz.png)
